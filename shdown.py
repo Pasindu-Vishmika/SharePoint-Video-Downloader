@@ -1,6 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
-from tkinter import scrolledtext
+from tkinter import filedialog, ttk, messagebox, scrolledtext
 import subprocess
 import os
 from datetime import datetime
@@ -28,6 +27,16 @@ def paste_from_clipboard():
         vlink_entry.insert(0, clipboard_text)
     except tk.TclError:
         output_text.insert(tk.END, "[-] There's nothing to paste from the clipboard.\n")
+        
+# New global variable to hold the selected download path
+download_path = os.path.join(os.getcwd(), "Downloads")
+
+def select_download_directory():
+    global download_path
+    chosen_directory = filedialog.askdirectory()
+    if chosen_directory:  # If the user chose a directory
+        download_path = chosen_directory
+        output_text.insert(tk.END, f"[+] Download location set to: {download_path}\n")
 
         
 def update_download_label(save_name):
@@ -98,6 +107,13 @@ save_name_entry.grid(row=1, column=1, padx=10, pady=10)
 # Create a paste button next to the vlink_entry
 paste_button = ttk.Button(root, text="Paste", command=paste_from_clipboard)
 paste_button.grid(row=0, column=2, padx=10, pady=10)
+
+download_button = ttk.Button(root, text="Download", command=download_video)
+download_button.grid(row=2, column=0, columnspan=2, pady=20)
+
+# New browse button to select download directory
+browse_button = ttk.Button(root, text="Browse", command=select_download_directory)
+browse_button.grid(row=1, column=2, padx=10, pady=10)
 
 # Define and place the download button
 download_button = ttk.Button(root, text="Download", command=download_video)
