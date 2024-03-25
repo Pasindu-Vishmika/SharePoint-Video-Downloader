@@ -7,7 +7,6 @@ import re
 import threading
 import webbrowser
 
-# Helper functions
 def generate_filename():
     filename = f"response_{datetime.now().timestamp()}.txt"
     return filename
@@ -29,7 +28,6 @@ def paste_from_clipboard():
     except tk.TclError:
         output_text.insert(tk.END, "[-] There's nothing to paste from the clipboard.\n")
         
-# New global variable to hold the selected download path
 download_path = os.path.join(os.getcwd(), "Downloads")
 
 def select_download_directory():
@@ -66,16 +64,18 @@ def download_video():
         subprocess.run(["dependencies\\curl\\bin\\curl.exe", vlink, "-o", new_filename], check=True)
         output_text.tag_configure('sucesss', font="Lexend", foreground='#1877F2')
         output_text.insert(tk.END, f"[+] Video manifest file {generate_filename()} downloaded\n","sucesss")
-        # ... rest of your existing code
 
         total_duration = get_video_duration(new_filename)
         if total_duration == 0:
             output_text.insert(tk.END, "[-] Error: Failed to get video duration.\n")
             return
+        
         progress_bar['value'] = 0
         download_thread = threading.Thread(target=download_video_thread, args=(new_filename, total_duration, save_name))
         download_thread.start()
+        
     except subprocess.CalledProcessError as e:
+        
         output_text.tag_configure('error', font="Lexend", foreground='red')
         output_text.insert(tk.END, "[-] Failed to download video manifest file.\n","error")
         if os.path.exists(new_filename):
@@ -190,7 +190,6 @@ content_frame.place(relx=0.5, rely=0.5, anchor="center")
 
 progress_label = ttk.Label(content_frame, text="0%", style="TLabel")
 progress_label.grid(row=4, column=0, columnspan=3, pady=10)  # Adjust row and column to fit your layout
-#download_button.grid(row=2, column=0, columnspan=3, padx=10, pady=20, sticky='ew')
 
 # Place widgets within the content frame
 vlink_label = ttk.Label(content_frame, text="Enter video manifest link:")
@@ -205,11 +204,9 @@ save_name_label.grid(row=1, column=0, padx=10, pady=5)
 save_name_entry = ttk.Entry(content_frame, width=ENTRY_WIDTH, style="Rounded.TEntry")
 save_name_entry.grid(row=1, column=1, pady=5)
 
-
 paste_button = styled_button(content_frame, "Paste", paste_from_clipboard)
 paste_button.config(width=button_width)
 paste_button.grid(row=0, column=2, padx=10, pady=5, sticky='ew')
-
 
 browse_button = styled_button(content_frame, "Browse", select_download_directory)
 browse_button.config(width=button_width)
@@ -217,7 +214,6 @@ browse_button.grid(row=1, column=2, padx=10, pady=5, sticky='ew')
 
 download_button = styled_button(content_frame, "Download", download_video)
 download_button.grid(row=2, column=0, columnspan=3, padx=10, pady=20, sticky='ew')
-
 
 progress_bar = ttk.Progressbar(content_frame, orient="horizontal", length=300, mode="determinate")
 progress_bar.grid(row=3, column=0, columnspan=3, padx=10, pady=5)
@@ -257,12 +253,11 @@ copyright_label.pack(side="top", fill="x", padx=10)
 
 # Contact Us button
 
-# ... your existing imports and functions ...
-
-# Function to open the "Contact Us" window
 def open_contact_us():
     contact_window = tk.Toplevel()
     contact_window.title("Contact Us")
+    contact_window.iconbitmap('dependencies\\images\\mainicon.ico')
+    
     contact_window.geometry('770x500')  # Adjust the size as needed
 
     # Set background color for the contact window
@@ -291,7 +286,7 @@ def open_contact_us():
     # Developer GitHub profile URLs
     dev1_github_url = "https://github.com/Pasindu-Vishmika"
     dev2_github_url = "https://github.com/adithyasandew"
-    dev3_github_url = "https://github.com/HimansaFernando"
+    dev3_github_url = "https://github.com/WHP-Fernando"
 
     # Function to open a developer's GitHub profile
     def open_github(url):
@@ -310,7 +305,7 @@ def open_contact_us():
 
         img_label = tk.Label(frame, image=icon, bg='#f3f4f6')
         img_label.pack(pady=5)
-        img_label.image = icon  # Keep a reference
+        img_label.image = icon 
 
         name_label = tk.Label(frame, text=name, font=text_font, bg='#f3f4f6')
         name_label.pack()
@@ -318,18 +313,16 @@ def open_contact_us():
         github_label = tk.Label(frame, image=github_icon, cursor="hand2", bg='#f3f4f6')
         github_label.pack(pady=5)
         github_label.bind("<Button-1>", lambda e, link=url: open_github(link))
-        github_label.image = github_icon  # Keep a reference
+        github_label.image = github_icon 
 
     tk.Label(contact_window, text="Follow us on GitHub for more updates:", font=github_font, bg='#f3f4f6').pack()
-
-# ... rest of your Tkinter setup ...
 
 # Contact Us button
 contact_us_button = tk.Button(
     bottom_frame,
     text="Contact Us",
     font=('Manrope', 10),
-    command=open_contact_us  # Call the function to open the contact window
+    command=open_contact_us  
 )
 contact_us_button.pack(side="top", pady=(4, 10))
 
