@@ -5,6 +5,7 @@ import os
 from datetime import datetime
 import re
 import threading
+import webbrowser
 
 # Helper functions
 def generate_filename():
@@ -262,38 +263,74 @@ copyright_label.pack(side="top", fill="x", padx=10)
 def open_contact_us():
     contact_window = tk.Toplevel()
     contact_window.title("Contact Us")
-    contact_window.geometry('400x300')  # Adjust the size as needed
-    
-    # Add your content here
-    tk.Label(contact_window, text="Contact Us", font=LARGE_FONT).pack(pady=(10, 20))
-    tk.Label(contact_window, text="Developed By", font=LARGE_FONT).pack()
-    
-    # Developer names and contact icons (assuming you have contact_icon.png)
-    dev_frame = tk.Frame(contact_window)
-    dev_frame.pack(pady=(5, 10))
-    
-    contact_icon = tk.PhotoImage(file="dependencies\\images\\dev.png")  # Replace with your actual file path
-    tk.Label(dev_frame, text="Pasindu Vishmika", image=contact_icon, compound='left').pack(side="left", padx=10)
-    tk.Label(dev_frame, text="Adithya Sandew", image=contact_icon, compound='left').pack(side="left", padx=10)
+    contact_window.geometry('770x500')  # Adjust the size as needed
 
-    tk.Label(contact_window, text="UI Design By", font=LARGE_FONT).pack()
-    tk.Label(contact_window, text="Himansa Fernando", image=contact_icon, compound='left').pack(pady=(5, 10))
-    
-    tk.Label(contact_window, text="Follow us on GitHub for more updates:", font=SMALL_FONT).pack()
-    
-    # Pass a reference to the images to prevent them from being garbage collected
-    dev_frame.image = contact_icon
-    
-    # Adjust layout, fonts, and styles as necessary...
+    # Set background color for the contact window
+    contact_window.configure(bg='#f3f4f6')
+
+    # Define a common font style for headers and subheaders
+    header_font = ('Manrope', 18, 'bold')
+    subheader_font = ('Manrope', 14)
+    text_font = ('Manrope', 12)
+    github_font = ('Segoe UI', 10, 'bold')
+
+    # Header label with a custom style
+    tk.Label(contact_window, text="Contact Us", font=header_font, bg='#f3f4f6').pack(pady=(20, 10))
+    tk.Label(contact_window, text="Developed By", font=subheader_font, bg='#f3f4f6').pack()
+
+    # Developer info with separate images
+    dev_frame = tk.Frame(contact_window, bg='#f3f4f6')
+    dev_frame.pack(pady=(5, 10))
+
+    # Load separate images for each developer
+    contact_icon1 = PhotoImage(file='dependencies/images/dev1.png')
+    contact_icon2 = PhotoImage(file='dependencies/images/dev2.png')
+    contact_icon3 = PhotoImage(file='dependencies/images/dev3.png')
+    github_icon = PhotoImage(file='dependencies/images/github.png')  # Add your GitHub icon image path
+
+    # Developer GitHub profile URLs
+    dev1_github_url = "https://github.com/Pasindu-Vishmika"
+    dev2_github_url = "https://github.com/adithyasandew"
+    dev3_github_url = "https://github.com/HimansaFernando"
+
+    # Function to open a developer's GitHub profile
+    def open_github(url):
+        webbrowser.open_new_tab(url)
+
+    # Create a label for each developer with their respective image
+    devs = [
+        (contact_icon1, "Pasindu Vishmika", dev1_github_url),
+        (contact_icon2, "Adithya Sandew", dev2_github_url),
+        (contact_icon3, "Himansa Fernando", dev3_github_url)
+    ]
+
+    for icon, name, url in devs:
+        frame = tk.Frame(dev_frame, bg='#f3f4f6')
+        frame.pack(side="left", expand=True, fill="both", padx=20)
+
+        img_label = tk.Label(frame, image=icon, bg='#f3f4f6')
+        img_label.pack(pady=5)
+        img_label.image = icon  # Keep a reference
+
+        name_label = tk.Label(frame, text=name, font=text_font, bg='#f3f4f6')
+        name_label.pack()
+
+        github_label = tk.Label(frame, image=github_icon, cursor="hand2", bg='#f3f4f6')
+        github_label.pack(pady=5)
+        github_label.bind("<Button-1>", lambda e, link=url: open_github(link))
+        github_label.image = github_icon  # Keep a reference
+
+    tk.Label(contact_window, text="Follow us on GitHub for more updates:", font=github_font, bg='#f3f4f6').pack()
+
+# ... rest of your Tkinter setup ...
 
 # Contact Us button
-contact_us_button = ttk.Button(
+contact_us_button = tk.Button(
     bottom_frame,
     text="Contact Us",
+    font=('Manrope', 10),
     command=open_contact_us  # Call the function to open the contact window
 )
 contact_us_button.pack(side="top", pady=(4, 10))
-
-# ... rest of your main window setup ...
 
 root.mainloop()
