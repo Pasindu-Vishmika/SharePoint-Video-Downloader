@@ -46,14 +46,23 @@ def update_progress_label(progress):
     progress_label.config(text=f"{progress:.2f}%")
 
 def download_video():
+    global download_path
     vlink = vlink_entry.get().strip()
     save_name = save_name_entry.get().strip() + ".mp4"
     update_download_label(save_name)
-    new_filename = generate_filename()
+    
+    # Ensure download_path exists. If not, create it.
+    if not os.path.exists(download_path):
+        os.makedirs(download_path)
+        output_text.insert(tk.END, f"[+] Created directory: {download_path}\n")
+
+    new_filename = os.path.join(download_path, generate_filename())
 
     try:
         subprocess.run(["dependencies\\curl\\bin\\curl.exe", vlink, "-o", new_filename], check=True)
         output_text.insert(tk.END, "[+] Video manifest file downloaded\n")
+        # ... rest of your existing code
+
         total_duration = get_video_duration(new_filename)
         if total_duration == 0:
             output_text.insert(tk.END, "[-] Error: Failed to get video duration.\n")
@@ -68,26 +77,56 @@ def download_video():
 
 
 def download_video_thread(new_filename, total_duration, save_name):
+    global download_path
     try:
-        cmd = ["dependencies\\ffmpeg\\bin\\ffmpeg.exe", "-protocol_whitelist", "file,http,https,tcp,tls", "-i", new_filename, "-codec", "copy", save_name]
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1, universal_newlines=True)
+        # Ensure the download path exists, create if it does not
+        if not os.path.exists(download_path):
+            os.makedirs(download_path)
+        
+        # Construct the full path to save the video
+        save_path = os.path.join(download_path, save_name)
+        
+        # Command to execute ffmpeg, which will handle the download
+        cmd = ["dependencies\\ffmpeg\\bin\\ffmpeg.exe","-protocol_whitelist", "file,http,https,tcp,tls","-i", new_filename,"-codec", "copy",save_path]
 
+        # Run the command and process its output
+        process = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, 
+            text=True, bufsize=1, universal_newlines=True
+        )
+
+        # Monitor ffmpeg output for progress
         for line in process.stdout:
             time_match = re.search(r"time=(\d+:\d+:\d+\.\d+)", line)
             if time_match:
                 time_str = time_match.group(1)
-                downloaded_duration = sum(x * 60 ** i for i, x in enumerate(map(float, reversed(time_str.split(":")))))
+                downloaded_duration = sum(
+                    x * 60 ** i for i, x in enumerate(map(float, reversed(time_str.split(":"))))
+                )
                 progress = (downloaded_duration / total_duration) * 100
                 update_progress_label(progress)
                 progress_bar['value'] = progress
                 root.update_idletasks()
         
+        # Wait for the subprocess to finish
         process.communicate()
-        root.after(0, lambda: messagebox.showinfo("Success", f"{save_name} Video Downloaded Successfully. !"))
+
+        # Check for ffmpeg process return code
+        if process.returncode != 0:
+            raise Exception(f"ffmpeg exited with return code {process.returncode}")
+
+        # Notify user of success
+        root.after(0, lambda: messagebox.showinfo("Success", f"{save_name} Video Downloaded Successfully."))
+
     except Exception as e:
+        # Log any errors to the GUI and remove partially downloaded files
         root.after(0, lambda: messagebox.showerror("Error", f"Failed to download {save_name}. Error: {str(e)}"))
-        if os.path.exists(save_name):
-            os.remove(save_name)
+        output_text.insert(tk.END, f"[-] Failed to download {save_name}. Error: {str(e)}\n")
+        
+        # Check if the file exists and remove it to avoid incomplete downloads
+        if os.path.exists(save_path):
+            os.remove(save_path)
+
 
 root = tk.Tk()
 root.title("Video Downloader")
