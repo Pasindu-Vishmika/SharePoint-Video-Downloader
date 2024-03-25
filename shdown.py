@@ -255,12 +255,45 @@ copyright_label = ttk.Label(
 copyright_label.pack(side="top", fill="x", padx=10)
 
 # Contact Us button
+
+# ... your existing imports and functions ...
+
+# Function to open the "Contact Us" window
+def open_contact_us():
+    contact_window = tk.Toplevel()
+    contact_window.title("Contact Us")
+    contact_window.geometry('400x300')  # Adjust the size as needed
+    
+    # Add your content here
+    tk.Label(contact_window, text="Contact Us", font=LARGE_FONT).pack(pady=(10, 20))
+    tk.Label(contact_window, text="Developed By", font=LARGE_FONT).pack()
+    
+    # Developer names and contact icons (assuming you have contact_icon.png)
+    dev_frame = tk.Frame(contact_window)
+    dev_frame.pack(pady=(5, 10))
+    
+    contact_icon = tk.PhotoImage(file="dependencies\\images\\dev.png")  # Replace with your actual file path
+    tk.Label(dev_frame, text="Pasindu Vishmika", image=contact_icon, compound='left').pack(side="left", padx=10)
+    tk.Label(dev_frame, text="Adithya Sandew", image=contact_icon, compound='left').pack(side="left", padx=10)
+
+    tk.Label(contact_window, text="UI Design By", font=LARGE_FONT).pack()
+    tk.Label(contact_window, text="Himansa Fernando", image=contact_icon, compound='left').pack(pady=(5, 10))
+    
+    tk.Label(contact_window, text="Follow us on GitHub for more updates:", font=SMALL_FONT).pack()
+    
+    # Pass a reference to the images to prevent them from being garbage collected
+    dev_frame.image = contact_icon
+    
+    # Adjust layout, fonts, and styles as necessary...
+
+# Contact Us button
 contact_us_button = ttk.Button(
     bottom_frame,
     text="Contact Us",
-    command=lambda: messagebox.showinfo("Contact", "Contact Us clicked!")
+    command=open_contact_us  # Call the function to open the contact window
 )
 contact_us_button.pack(side="top", pady=(4, 10))
 
-# Start the main loop
+# ... rest of your main window setup ...
+
 root.mainloop()
