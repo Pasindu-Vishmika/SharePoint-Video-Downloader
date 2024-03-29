@@ -9,7 +9,7 @@ import threading
 import webbrowser
 
 def resource_path(relative_path):
-    """ Get absolute path to resource, works for development and for PyInstaller """
+
     try:
         # PyInstaller creates a temp folder and stores path in _MEIPASS
         base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
@@ -23,7 +23,7 @@ def generate_filename():
     return filename
 
 def get_video_duration(filename):
-    result = subprocess.run(["dependencies\\ffmpeg\\bin\\ffmpeg.exe", "-i", filename], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    result = subprocess.run(["dependencies\\ffmpeg\\ffmpeg\\bin\\ffmpeg.exe", "-i", filename], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     duration_match = re.search(r"Duration: (\d+:\d+:\d+\.\d+)", result.stdout)
     if duration_match:
         duration_str = duration_match.group(1)
@@ -61,9 +61,16 @@ def update_progress_label(progress):
 def download_video():
     global download_path
     vlink = vlink_entry.get().strip()
-    save_name = save_name_entry.get().strip() + ".mp4"
+    save_name = save_name_entry.get().strip()
+
+    # Check if both the link and file name are provided
+    if not vlink or not save_name:
+        messagebox.showwarning("Warning", "Please Fill Both of Link and FileName !")
+        return
+
+    save_name += ".mp4"  # Ensure the file name ends with .mp4
     update_download_label(save_name)
-    
+
     # Ensure download_path exists. If not, create it.
     if not os.path.exists(download_path):
         os.makedirs(download_path)
@@ -72,9 +79,9 @@ def download_video():
     new_filename = os.path.join(download_path, generate_filename())
 
     try:
-        subprocess.run(["dependencies\\curl\\bin\\curl.exe", vlink, "-o", new_filename], check=True)
+        subprocess.run(["dependencies\\curl\\curl\\bin\\curl.exe", vlink, "-o", new_filename], check=True)
         output_text.tag_configure('sucesss', font="Lexend", foreground='#1877F2')
-        output_text.insert(tk.END, f"[+] Video manifest file {generate_filename()} downloaded\n","sucesss")
+        output_text.insert(tk.END, f"[+] Video manifest file {generate_filename()} downloaded\n", "sucesss")
 
         total_duration = get_video_duration(new_filename)
         if total_duration == 0:
@@ -86,11 +93,11 @@ def download_video():
         download_thread.start()
         
     except subprocess.CalledProcessError as e:
-        
         output_text.tag_configure('error', font="Lexend", foreground='red')
-        output_text.insert(tk.END, "[-] Failed to download video manifest file.\n","error")
+        output_text.insert(tk.END, "[-] Failed to download video manifest file.\n", "error")
         if os.path.exists(new_filename):
             os.remove(new_filename)
+
 
 
 def download_video_thread(new_filename, total_duration, save_name):
@@ -105,7 +112,7 @@ def download_video_thread(new_filename, total_duration, save_name):
 
         # Command to execute ffmpeg, which will handle the download
         cmd = [
-            "dependencies\\ffmpeg\\bin\\ffmpeg.exe",
+            "dependencies\\ffmpeg\\ffmpeg\\bin\\ffmpeg.exe",
             "-protocol_whitelist", "file,http,https,tcp,tls",
             "-i", new_filename,
             "-codec", "copy",
@@ -114,8 +121,13 @@ def download_video_thread(new_filename, total_duration, save_name):
 
         # Run the command and process its output
         process = subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-            text=True, bufsize=1, universal_newlines=True
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1,
+            universal_newlines=True,
+            creationflags=subprocess.CREATE_NO_WINDOW
         )
 
         # Monitor ffmpeg output for progress
@@ -127,8 +139,10 @@ def download_video_thread(new_filename, total_duration, save_name):
                     x * 60 ** i for i, x in enumerate(map(float, reversed(time_str.split(":"))))
                 )
                 progress = (downloaded_duration / total_duration) * 100
+                
                 update_progress_label(progress)
                 progress_bar['value'] = progress
+                progress_percentage_label.config(text=f"{progress:.2f}%") 
                 root.update_idletasks()
 
         # Wait for the subprocess to finish
@@ -232,6 +246,11 @@ download_button.grid(row=2, column=0, columnspan=3, padx=10, pady=20, sticky='ew
 
 progress_bar = ttk.Progressbar(content_frame, orient="horizontal", length=300, mode="determinate")
 progress_bar.grid(row=3, column=0, columnspan=3, padx=10, pady=5)
+
+# Define the progress percentage label after the progress bar's definition
+progress_percentage_label = ttk.Label(content_frame, text="0%", style="TLabel")
+progress_percentage_label.grid(row=3, column=2, sticky="W")  # Place it next to the progress bar
+
 
 download_label = ttk.Label(content_frame, text="Waiting for download...")
 download_label.grid(row=4, column=0, columnspan=3, pady=5)
